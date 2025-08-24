@@ -1,3 +1,9 @@
+@font-face {
+    font-family: "Silentia";
+    src: url("fonts/Silentina.ttf");
+}
+
+/* Main Page */
 .main {
     position: absolute;
     background-image: url("static/background.png");
@@ -8,10 +14,38 @@
     background-size: cover;
 }
 
-.hp_bar {
+/* HP Bar Container */
+.hp_bar_container {
     position: absolute;
-    width: 300px;
     top: 70px;
+    width: 315px;
 }
-.hp_bar_left { left: 550px; }
-.hp_bar_right { right: 550px; }
+.hp_bar_container_left { left: 550px; }
+.hp_bar_container_right { right: 550px; }
+/* HP Bar Image */
+.hp_bar_image {
+    position: absolute;
+    width: 315px;
+}
+/* HP Bar Health */
+.hp_bar_health {
+    position: absolute;
+    width: 284px;
+    height: 11.5px;
+    background-color: #1F191C;
+    top: 17px;
+    left: 15px;
+}
+/* HP Bar Text */
+.hp_text {
+    position: absolute;
+    top: 40px;
+    font-family: "Silentia";
+    font-weight: 700;
+    color: #E7E1DB;
+    font-size: 1.25em;
+}
+.hp_text_left { left: 25px; }
+.hp_text_right { right: 25px; }
+/* HP Number */
+.hp_number, .hp_negative_number { font-variant-numeric: tabular-nums; }

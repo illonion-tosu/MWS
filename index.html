@@ -9,8 +9,16 @@
 </head>
 <body>
     <div class="main">
-        <img class="hp_bar hp_bar_left" src="static/HP_BAR.png">
-        <img class="hp_bar hp_bar_right" src="static/HP_BAR.png">
+        <div class="hp_bar_container hp_bar_container_left">
+            <div class="hp_bar_health"></div>
+            <img class="hp_bar_image" src="static/HP_BAR.png">
+            <div class="hp_text hp_text_left">HP:  <span class="hp_number hp_number_left">123,456</span> <span class="hp_negative_number">(-111,111)</span></div>
+        </div>
+        <div class="hp_bar_container hp_bar_container_right">
+            <div class="hp_bar_health"></div>
+            <img class="hp_bar_image" src="static/HP_BAR.png">
+            <div class="hp_text hp_text_right">HP: <span class="hp_number hp_number_right">123,456</span> <span class="hp_negative_number">(-111,111)</span></div>
+        </div>
     </div>
 </body>
 </html>
