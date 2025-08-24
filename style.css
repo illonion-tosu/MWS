@@ -1,0 +1,17 @@
+.main {
+    position: absolute;
+    background-image: url("static/background.png");
+    top: 0;
+    left: 0;
+    width: 1920px;
+    height: 1080px;
+    background-size: cover;
+}
+
+.hp_bar {
+    position: absolute;
+    width: 300px;
+    top: 70px;
+}
+.hp_bar_left { left: 550px; }
+.hp_bar_right { right: 550px; }
