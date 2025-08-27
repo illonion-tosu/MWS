@@ -71,6 +71,7 @@ const hpBarHealthRightEl = document.getElementById("hp_bar_health_right")
 
 // IPC State
 let ipcState
+let checkedWinner = false
 
 // Socket
 let currentLeftScore, currentRightScore, currentScoreDifference
@@ -82,7 +83,20 @@ socket.onmessage = event => {
     // IPC State
     if (ipcState !== data.tourney.ipcState) {
         ipcState = data.tourney.ipcState
-    }
+
+        if (ipcState === 4 && !checkedWinner) {
+            checkedWinner = true 
+            if (!isWarmupToggled) {
+                if (currentLeftScore > currentRightScore) {
+                    rightHpBeforeMap -= currentScoreDifference
+                } else if (currentLeftScore < currentRightScore) {
+                    leftHpBeforeMap -= currentScoreDifference
+                }
+            }
+        } else if (ipcState !== 4) {
+            checkedWinner = false
+        }
+    } 
 
     if (!isWarmupToggled) {
         if (ipcState === 3) {
