@@ -65,4 +65,94 @@ function toggleWarmup() {
     toggleWarmupEl.classList.remove(isWarmupToggled? "off" : "on")
 }
 
-// 
+// Health Bars
+const hpBarHealthLeftEl = document.getElementById("hp_bar_health_left")
+const hpBarHealthRightEl = document.getElementById("hp_bar_health_right")
+
+// IPC State
+let ipcState
+
+// Socket
+let currentLeftScore, currentRightScore, currentScoreDifference
+const socket = createTosuWsSocket()
+socket.onmessage = event => {
+    const data = JSON.parse(event.data)
+    console.log(data)
+
+    // IPC State
+    if (ipcState !== data.tourney.ipcState) {
+        ipcState = data.tourney.ipcState
+    }
+
+    if (!isWarmupToggled) {
+        if (ipcState === 3) {
+            // Set current scores
+            currentLeftScore = data.tourney.clients[0].play.score
+            currentRightScore = data.tourney.clients[1].play.score
+            currentScoreDifference = Math.abs(currentLeftScore - currentRightScore)
+
+            // Make the animations and stuff
+            if (currentLeftScore > currentRightScore) {
+                // Set number
+                animation.hpNumberLeft.update(leftHpBeforeMap)
+                const currentScore = rightHpBeforeMap - currentScoreDifference
+                const otherNumber = Math.max(currentScore, 0)
+                animation.hpNumberRight.update(otherNumber)
+
+                if (currentScore === 0) {
+                    // Display negative numbers
+                    hpNegativeNumberLeftEl.style.display = "none"
+                    hpNegativeNumberRightEl.style.display = "block"
+
+                    // Animate negative numbers
+                    animation.hpNegativeNumberLeft.update(0)
+                    animation.hpNegativeNumberRight.update(currentScore)
+                }
+
+                // Set bar width
+                hpBarHealthLeftEl.style.width = `${leftHpBeforeMap / totalMaxHp * 284}px`
+                hpBarHealthRightEl.style.width = `${otherNumber / totalMaxHp * 284}px`
+            } else if (currentLeftScore === currentRightScore) {
+                // Set number
+                animation.hpNumberLeft.update(leftHpBeforeMap)
+                animation.hpNumberRight.update(rightHpBeforeMap)
+
+                // Display negative numbers
+                hpNegativeNumberLeftEl.style.display = "none"
+                hpNegativeNumberRightEl.style.display = "none"
+
+                // Animate negative numbers
+                animation.hpNegativeNumberLeft.update(0)
+                animation.hpNegativeNumberRight.update(0)
+
+                // Set bar width
+                hpBarHealthLeftEl.style.width = `${leftHpBeforeMap / totalMaxHp * 284}px`
+                hpBarHealthRightEl.style.width = `${rightHpBeforeMap / totalMaxHp * 284}px`
+            } else if (currentLeftScore < currentRightScore) {
+                // Set number
+                const currentScore = leftHpBeforeMap - currentScoreDifference
+                const otherNumber = Math.max(currentScore, 0)
+                animation.hpNumberLeft.update(Math.max(currentScore, 0))
+                animation.hpNumberRight.update(rightHpBeforeMap)
+
+                if (currentScore === 0) {
+                    // Display negative numbers
+                    hpNegativeNumberLeftEl.style.display = "block"
+                    hpNegativeNumberRightEl.style.display = "none"
+
+                    // Animate negative numbers
+                    animation.hpNegativeNumberLeft.update(currentScore)
+                    animation.hpNegativeNumberRight.update(0)
+                }
+
+                // Set bar width
+                hpBarHealthLeftEl.style.width = `${otherNumber / totalMaxHp * 284}px`
+                hpBarHealthRightEl.style.width = `${rightHpBeforeMap / totalMaxHp * 284}px`
+            }
+        } else {
+            // Set number
+            animation.hpNumberLeft.update(leftHpBeforeMap)
+            animation.hpNumberRight.update(rightHpBeforeMap)
+        }
+    }
+}
