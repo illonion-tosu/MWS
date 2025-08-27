@@ -22,7 +22,7 @@ body {
 /* Main Page */
 .main {
     position: absolute;
-    background-image: url("static/background.png");
+    background-image: url("../static/background.png");
     top: 0;
     left: 0;
     width: var(--main-width);
