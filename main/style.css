@@ -150,3 +150,11 @@ body {
     background-color: rgb(180, 70, 70);
     color: var(--text-color);
 }
+.sidebar_section button.on:active{ 
+    background: var(--text-color);
+    color: var(--sidebar-background);
+}
+.sidebar_section button.off:active { 
+    background: var(--text-color);
+    color: var(--sidebar-background);
+}
