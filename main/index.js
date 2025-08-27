@@ -16,6 +16,7 @@ let totalMaxHp = 0
 let leftHpBeforeMap, rightHpBeforeMap
 let allBeatmaps
 async function getBeatmaps() {
+    // Get beatmap and set total max hp
     const response = await axios.get("../_data/beatmaps.json")
     allBeatmaps = response.data.beatmaps
     switch (response.data.roundName) {
@@ -40,6 +41,19 @@ async function getBeatmaps() {
 }
 
 getBeatmaps()
+
+// Set HP
+const setHpValueLeftEl = document.getElementById("set_hp_value_left")
+const setHpValueRightEl = document.getElementById("set_hp_value_right")
+function setHp() {
+    function getHpValue(inputEl, original) {
+        if (inputEl.value === "") return original
+        return Math.max(Math.min(Number(inputEl.value), totalMaxHp), 1)
+    }
+
+    leftHpBeforeMap = getHpValue(setHpValueLeftEl, leftHpBeforeMap)
+    rightHpBeforeMap = getHpValue(setHpValueRightEl, rightHpBeforeMap)
+}
 
 // Warmup
 const toggleWarmupEl = document.getElementById("toggle_warmup")
