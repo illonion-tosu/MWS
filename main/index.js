@@ -153,6 +153,10 @@ socket.onmessage = event => {
             // Set number
             animation.hpNumberLeft.update(leftHpBeforeMap)
             animation.hpNumberRight.update(rightHpBeforeMap)
+
+            // Set bar width
+            hpBarHealthLeftEl.style.width = `${leftHpBeforeMap / totalMaxHp * 284}px`
+            hpBarHealthRightEl.style.width = `${rightHpBeforeMap / totalMaxHp * 284}px`
         }
     }
 }
