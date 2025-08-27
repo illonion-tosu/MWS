@@ -11,7 +11,7 @@
 
 @font-face {
     font-family: "Silentia";
-    src: url("fonts/Silentina.ttf");
+    src: url("../fonts/Silentina.ttf");
 }
 
 body {
@@ -75,13 +75,13 @@ body {
 }
 /* Sidebar Section */
 .sidebar_section {
-    border-bottom: 2px solid var(--text-color);
+    border-bottom: 4px solid var(--text-color);
     padding-bottom: 30px;
 }
 /* Helper Classes */
 .full_width {
-    width: 200px;
-    margin-left: 25px;
+    width: 220px;
+    margin-left: 15px;
 }
 /* Sidebar Section Title */
 .sidebar_section h1 {
@@ -140,4 +140,13 @@ body {
 .set_hp_value::-webkit-inner-spin-button {
   -webkit-appearance: none;
   margin: 0;
+}
+/* Sidebar Section Active */
+.sidebar_section button.on { 
+    background-color: rgb(70, 180, 70);
+    color: var(--sidebar-background);
+}
+.sidebar_section button.off { 
+    background-color: rgb(180, 70, 70);
+    color: var(--text-color);
 }

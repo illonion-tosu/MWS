@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="style.css">
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.11.0/axios.min.js" integrity="sha512-h9644v03pHqrIHThkvXhB2PJ8zf5E9IyVnrSfZg8Yj8k4RsO4zldcQc4Bi9iVLUCCsqNY0b4WXVV4UB+wbWENA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="../deps/countUp.js"></script>
 </head>
 <body>
     <div class="main">
@@ -15,33 +16,20 @@
             <div class="hp_bar_health"></div>
             <img class="hp_bar_image" src="../static/HP_BAR.png">
             <div class="hp_text hp_text_left">
-                <span class="hp_number hp_number_left" id="hp_number_left">123,456</span> 
-                <span class="hp_negative_number">(-111,111)</span>
+                <span class="hp_number hp_number_left" id="hp_number_left">0</span> 
+                <span class="hp_negative_number" id="hp_negative_number_left">0</span>
             </div>
         </div>
         <div class="hp_bar_container hp_bar_container_right">
             <div class="hp_bar_health"></div>
             <img class="hp_bar_image" src="../static/HP_BAR.png">
             <div class="hp_text hp_text_right">
-                <span class="hp_negative_number">(-111,111)</span> 
-                <span class="hp_number hp_number_right" id="hp_number_right">123,456</span>
+                <span class="hp_negative_number" id="hp_negative_number_right">0</span> 
+                <span class="hp_number hp_number_right" id="hp_number_right">0</span>
             </div>
         </div>
     </div>
     <div class="sidebar">
-        <section class="sidebar_section">
-            <h1>Set Round:</h1>
-            <select size="7">
-                <option>Round of 64</option>
-                <option>Round of 32</option>
-                <option>Round of 16</option>
-                <option>Quarterfinals</option>
-                <option>Semifinals</option>
-                <option>Finals</option>
-                <option>Grand Finals</option>
-            </select>
-            <button class="full_width">Set Round</button>
-        </section>
         <section class="sidebar_section">
             <h1>Set HP From Map Start:</h1>
             <div class="set_hp_player">Red</div>
@@ -49,6 +37,10 @@
             <div class="set_hp_player">Blue</div>
             <input type="number" class="set_hp_value full_width">
             <button class="full_width">Set HP</button>
+        </section>
+        <section class="sidebar_section">
+            <h1>Set Warmup:</h1>
+            <button class="full_width off" id="toggle_warmup" onclick="toggleWarmup()">Toggle Warmup: OFF</button>
         </section>
     </div>
 
