@@ -33,9 +33,9 @@
         <div class="column column_1">
             <section class="sidebar_section">
                 <h1>Set HP From Map Start:</h1>
-                <div class="set_hp_player">Red</div>
+                <div class="sidebar_text">Red</div>
                 <input type="number" class="set_hp_value full_width" id="set_hp_value_left">
-                <div class="set_hp_player">Blue</div>
+                <div class="sidebar_text">Blue</div>
                 <input type="number" class="set_hp_value full_width" id="set_hp_value_right">
                 <button class="normal_button full_width" onclick="setHp()">Set HP</button>
             </section>
@@ -43,25 +43,40 @@
                 <h1>Set Warmup:</h1>
                 <button class="normal_button full_width off" id="toggle_warmup" onclick="toggleWarmup()">Toggle Warmup: OFF</button>
             </section>
+            <section class="sidebar_section">
+                <h1>Pillar List</h1>
+                <div class="sidebar_text">Red Pillar Neutralization</div>
+                <div class="sidebar_pillar_mod_id" id="r_n"></div>
+                <div class="sidebar_text">Blue Pillar Neutralization</div>
+                <div class="sidebar_pillar_mod_id" id="b_n"></div>
+                <div class="sidebar_text">Red Pillar Dominion</div>
+                <div class="sidebar_pillar_mod_id" id="r_d"></div>
+                <div class="sidebar_text">Blue Pillar Dominion</div>
+                <div class="sidebar_pillar_mod_id" id="b_d"></div>
+                <div class="sidebar_text">Red Pillar Coalescence</div>
+                <div class="sidebar_pillar_mod_id" id="r_c"></div>
+                <div class="sidebar_text">Blue Pillar Coalescence</div>
+                <div class="sidebar_pillar_mod_id" id="b_c"></div>
+            </section>
         </div>
         <div class="divider divider_1"></div>
         <div class="column column_2">
             <section class="sidebar_section">
                 <h1>Set Pillars</h1>
-                <div class="set_hp_player">Select Pillar</div>
-                <select size="3">
-                    <option value="N">Pillar Neutralization</option>
-                    <option value="D">Pillar Dominion</option>
-                    <option value="D">Pillar Coalescence</option>
+                <div class="sidebar_text">Select Pillar</div>
+                <select size="3" id="select_pillar">
+                    <option value="n">Pillar Neutralization</option>
+                    <option id="pillar_dominion_option" value="d">Pillar Dominion</option>
+                    <option id="pillar_coalescence_option" value="c">Pillar Coalescence</option>
                 </select>
-                <div class="set_hp_player">Select Map</div>
+                <div class="sidebar_text">Select Map</div>
                 <div class="map_button_container" id="map_button_container"></div>
-                <div class="set_hp_player">Select Player</div>
-                <select size="2">
-                    <option value="R">Red</option>
-                    <option value="B">Blue</option>
+                <div class="sidebar_text">Select Player</div>
+                <select size="2" id="select_player">
+                    <option value="r">Red</option>
+                    <option value="b">Blue</option>
                 </select>
-                <button class="normal_button full_width">Set Pillar</button>
+                <button class="normal_button full_width" onclick="setPillar()">Set Pillar</button>
             </section>
         </div>
     </div>

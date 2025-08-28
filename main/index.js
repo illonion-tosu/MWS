@@ -1,3 +1,7 @@
+const pillarDominionOptionEl = document.getElementById("pillar_dominion_option")
+const pillarCoalescenceOptionEl = document.getElementById("pillar_coalescence_option")
+window.selectPillarEl = document.getElementById("select_pillar")
+
 // Set Total Max HP
 const hpNumberLeftEl = document.getElementById("hp_number_left")
 const hpNumberRightEl = document.getElementById("hp_number_right")
@@ -24,9 +28,14 @@ async function getBeatmaps() {
     switch (response.data.roundName) {
         case "RO64": case "RO32": case "RO16":
             totalMaxHp = 800000
+            pillarDominionOptionEl.style.display = "none"
+            pillarCoalescenceOptionEl.style.display = "none"
+            window.selectPillarEl.setAttribute("size", 2)
             break
         case "QF": case "SF":
             totalMaxHp = 1000000
+            pillarCoalescenceOptionEl.style.display = "none"
+            window.selectPillarEl.setAttribute("size", 2)
             break
         case "F": case "GF":
             totalMaxHp = 1200000
@@ -47,15 +56,20 @@ async function getBeatmaps() {
 
     // Create buttons
     for (let i = 0; i < allBeatmaps.length; i++) {
-        if (allBeatmaps[i].mod === "PS") continue
+        if (allBeatmaps[i].mod === "PS" || allBeatmaps[i].mod === "TB") continue
         const button = document.createElement("button")
         button.textContent = `${allBeatmaps[i].mod}${allBeatmaps[i].order}`
         button.classList.add("beatmap_button")
+        button.addEventListener("click", pillarMapSelection)
+        button.dataset.id = allBeatmaps[i].beatmap_id
         mapButtonContainerEl.append(button)
     }
 }
 
 getBeatmaps()
+
+// Find beatmaps
+const findBeatmaps = beatmapId => allBeatmaps.find(beatmap => Number(beatmap.beatmap_id) === Number(beatmapId))
 
 // Set HP
 const setHpValueLeftEl = document.getElementById("set_hp_value_left")
@@ -88,9 +102,76 @@ const hpBarHealthRightEl = document.getElementById("hp_bar_health_right")
 let ipcState
 let checkedWinner = false
 
+// Pillar Map Selection
+window.currentPillarMapId = null
+function pillarMapSelection() {
+    const beatmapButtons = document.getElementsByClassName("beatmap_button")
+    for (let i = 0; i < beatmapButtons.length; i++) {
+        beatmapButtons[i].style.color = "var(--text-color)"
+        beatmapButtons[i].style.backgroundColor = "transparent"
+    }
+    this.style.color = "var(--sidebar-background)"
+    this.style.backgroundColor = "var(--text-color)"
+    window.currentPillarMapId = Number(this.dataset.id)
+}
+
+// Pillar variables
+window.selectPlayerEl = document.getElementById("select_player")
+const redNeutralizationEl = document.getElementById("r_n")
+const blueNeutralizationEl = document.getElementById("b_n")
+const redDominionEl = document.getElementById("r_d")
+const blueDominionEl = document.getElementById("b_d")
+const redCoalescenceEl = document.getElementById("r_c")
+const blueCoalescenceEl = document.getElementById("b_c")
+
+// Your ID variables
+let redNeutralizationId
+let blueNeutralizationId
+let redDominionId
+let blueDominionId
+let redCoalescenceId
+let blueCoalescenceId
+
+// Lookup map for IDs
+const pillarIdMap = {
+    r_n: () => redNeutralizationId,
+    b_n: () => blueNeutralizationId,
+    r_d: () => redDominionId,
+    b_d: () => blueDominionId,
+    r_c: () => redCoalescenceId,
+    b_c: () => blueCoalescenceId,
+}
+
+// Lookup map for DOM elements
+const pillarElementMap = {
+    r_n: redNeutralizationEl,
+    b_n: blueNeutralizationEl,
+    r_d: redDominionEl,
+    b_d: blueDominionEl,
+    r_c: redCoalescenceEl,
+    b_c: blueCoalescenceEl,
+}
+
+function setPillar() {
+    if (!window.selectPlayerEl.value || !window.selectPillarEl.value) return
+
+    const key = `${window.selectPlayerEl.value}_${window.selectPillarEl.value}`
+    pillarIdMap[key] = window.currentPillarMapId 
+
+    const correctElement = pillarElementMap[key]
+    let currentBeatmap = findBeatmaps(window.currentPillarMapId)
+
+    console.log(correctElement, currentBeatmap, window.currentPillarMapId)
+
+    if (correctElement && currentBeatmap) {
+        correctElement.textContent = `${currentBeatmap.mod}${currentBeatmap.order}`
+    }
+}
+
+// Socket
+const socket = createTosuWsSocket()
 // Socket
 let currentLeftScore, currentRightScore, currentScoreDifference
-const socket = createTosuWsSocket()
 socket.onmessage = event => {
     const data = JSON.parse(event.data)
     console.log(data)
