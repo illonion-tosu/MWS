@@ -30,18 +30,40 @@
         </div>
     </div>
     <div class="sidebar">
-        <section class="sidebar_section">
-            <h1>Set HP From Map Start:</h1>
-            <div class="set_hp_player">Red</div>
-            <input type="number" class="set_hp_value full_width" id="set_hp_value_left">
-            <div class="set_hp_player">Blue</div>
-            <input type="number" class="set_hp_value full_width" id="set_hp_value_right">
-            <button class="full_width" onclick="setHp()">Set HP</button>
-        </section>
-        <section class="sidebar_section">
-            <h1>Set Warmup:</h1>
-            <button class="full_width off" id="toggle_warmup" onclick="toggleWarmup()">Toggle Warmup: OFF</button>
-        </section>
+        <div class="column column_1">
+            <section class="sidebar_section">
+                <h1>Set HP From Map Start:</h1>
+                <div class="set_hp_player">Red</div>
+                <input type="number" class="set_hp_value full_width" id="set_hp_value_left">
+                <div class="set_hp_player">Blue</div>
+                <input type="number" class="set_hp_value full_width" id="set_hp_value_right">
+                <button class="normal_button full_width" onclick="setHp()">Set HP</button>
+            </section>
+            <section class="sidebar_section">
+                <h1>Set Warmup:</h1>
+                <button class="normal_button full_width off" id="toggle_warmup" onclick="toggleWarmup()">Toggle Warmup: OFF</button>
+            </section>
+        </div>
+        <div class="divider divider_1"></div>
+        <div class="column column_2">
+            <section class="sidebar_section">
+                <h1>Set Pillars</h1>
+                <div class="set_hp_player">Select Pillar</div>
+                <select size="3">
+                    <option value="N">Pillar Neutralization</option>
+                    <option value="D">Pillar Dominion</option>
+                    <option value="D">Pillar Coalescence</option>
+                </select>
+                <div class="set_hp_player">Select Map</div>
+                <div class="map_button_container" id="map_button_container"></div>
+                <div class="set_hp_player">Select Player</div>
+                <select size="2">
+                    <option value="R">Red</option>
+                    <option value="B">Blue</option>
+                </select>
+                <button class="normal_button full_width">Set Pillar</button>
+            </section>
+        </div>
     </div>
 
     <script src="index.js"></script>

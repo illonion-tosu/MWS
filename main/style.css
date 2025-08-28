@@ -69,10 +69,28 @@ body {
     position: absolute;
     top: 0;
     left: var(--main-width);
-    width: var(--sidebar-width);
+    width: calc(var(--sidebar-width) * 2);
     height: var(--main-height);
     background-color: var(--sidebar-background);
 }
+/* Sidebar Column */
+.column {
+    position: absolute;
+    top: 0;
+    width: var(--sidebar-width);
+    height: inherit;
+}
+.column_1 { left: 0; }
+.column_2 { left: 250px; }
+/* Divider Column */
+.divider {
+    position: absolute;
+    top: 0;
+    width: 4px;
+    height: inherit;
+    background-color: var(--text-color);
+}
+.divider_1 { left: 248px; }
 /* Sidebar Section */
 .sidebar_section {
     border-bottom: 4px solid var(--text-color);
@@ -106,7 +124,7 @@ body {
     padding: 5px 0;
 }
 /* Sidebar Section Button */
-.sidebar_section button {
+.normal_button {
     height: 50px;
     font-family: var(--font-family);
     font-size: 1.25em;
@@ -115,7 +133,7 @@ body {
     border: 3px solid var(--text-color);
     border-radius: 20px;
 }
-.sidebar_section button:active {
+.normal_button:active {
     background: var(--text-color);
     color: var(--sidebar-background);
 }
@@ -157,4 +175,21 @@ body {
 .sidebar_section button.off:active { 
     background: var(--text-color);
     color: var(--sidebar-background);
+}
+/* Map Button Container */
+.map_button_container {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-bottom: 20px;
+}
+/* Beatmap Button */
+.beatmap_button {
+    font-size: 1em;
+    width: 70px;
+    height: 35px;
+    background-color: transparent;
+    color: var(--text-color);
+    border: none;
 }

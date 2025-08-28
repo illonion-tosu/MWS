@@ -12,13 +12,15 @@ const animation = {
     "hpNegativeNumberRight": new CountUp(hpNegativeNumberRightEl, 0, 0, 0, 0.2, { useEasing: true, useGrouping: true, separator: ",", decimal: ".", suffix: ")", prefix: "(" })
 }
 
+const mapButtonContainerEl = document.getElementById("map_button_container")
 let totalMaxHp = 0
 let leftHpBeforeMap, rightHpBeforeMap
 let allBeatmaps
 async function getBeatmaps() {
     // Get beatmap and set total max hp
     const response = await axios.get("../_data/beatmaps.json")
-    allBeatmaps = response.data.beatmaps
+    
+    // Set Total Max Hp
     switch (response.data.roundName) {
         case "RO64": case "RO32": case "RO16":
             totalMaxHp = 800000
@@ -34,10 +36,23 @@ async function getBeatmaps() {
     leftHpBeforeMap = totalMaxHp
     rightHpBeforeMap = totalMaxHp
 
+    // Show original scores
     animation.hpNumberLeft.update(leftHpBeforeMap)
     animation.hpNumberRight.update(rightHpBeforeMap)
     hpNegativeNumberLeftEl.style.display = "none"
     hpNegativeNumberRightEl.style.display = "none"
+
+    // Save beatmaps
+    allBeatmaps = response.data.beatmaps
+
+    // Create buttons
+    for (let i = 0; i < allBeatmaps.length; i++) {
+        if (allBeatmaps[i].mod === "PS") continue
+        const button = document.createElement("button")
+        button.textContent = `${allBeatmaps[i].mod}${allBeatmaps[i].order}`
+        button.classList.add("beatmap_button")
+        mapButtonContainerEl.append(button)
+    }
 }
 
 getBeatmaps()
@@ -103,7 +118,7 @@ socket.onmessage = event => {
             // Set current scores
             currentLeftScore = data.tourney.clients[0].play.score
             currentRightScore = data.tourney.clients[1].play.score
-            currentScoreDifference = Math.abs(currentLeftScore - currentRightScore)
+            currentScoreDifference = Math.min(Math.abs(currentLeftScore - currentRightScore), 350000)
 
             // Make the animations and stuff
             if (currentLeftScore > currentRightScore) {
