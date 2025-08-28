@@ -124,22 +124,14 @@ const blueDominionEl = document.getElementById("b_d")
 const redCoalescenceEl = document.getElementById("r_c")
 const blueCoalescenceEl = document.getElementById("b_c")
 
-// Your ID variables
-let redNeutralizationId
-let blueNeutralizationId
-let redDominionId
-let blueDominionId
-let redCoalescenceId
-let blueCoalescenceId
-
 // Lookup map for IDs
 const pillarIdMap = {
-    r_n: () => redNeutralizationId,
-    b_n: () => blueNeutralizationId,
-    r_d: () => redDominionId,
-    b_d: () => blueDominionId,
-    r_c: () => redCoalescenceId,
-    b_c: () => blueCoalescenceId,
+    r_n: null,
+    b_n: null,
+    r_d: null,
+    b_d: null,
+    r_c: null,
+    b_c: null,
 }
 
 // Lookup map for DOM elements
@@ -161,11 +153,28 @@ function setPillar() {
     const correctElement = pillarElementMap[key]
     let currentBeatmap = findBeatmaps(window.currentPillarMapId)
 
-    console.log(correctElement, currentBeatmap, window.currentPillarMapId)
-
     if (correctElement && currentBeatmap) {
         correctElement.textContent = `${currentBeatmap.mod}${currentBeatmap.order}`
     }
+}
+
+// Max Bar Width
+const maxBarWidth = 284
+function updateHpNumbers(left, right) {
+    animation.hpNumberLeft.update(left)
+    animation.hpNumberRight.update(right)
+}
+function updateNegativeNumbers(left, right) {
+    animation.hpNegativeNumberLeft.update(left)
+    animation.hpNegativeNumberRight.update(right)
+}
+function setNegativeDisplay(leftVisible, rightVisible) {
+    hpNegativeNumberLeftEl.style.display = leftVisible ? "block" : "none"
+    hpNegativeNumberRightEl.style.display = rightVisible ? "block" : "none"
+}
+function updateHpBars(left, right) {
+    hpBarHealthLeftEl.style.width = `${(left / totalMaxHp) * BAR_MAX_WIDTH}px`
+    hpBarHealthRightEl.style.width = `${(right / totalMaxHp) * BAR_MAX_WIDTH}px`
 }
 
 // Socket
@@ -201,72 +210,44 @@ socket.onmessage = event => {
             currentRightScore = data.tourney.clients[1].play.score
             currentScoreDifference = Math.min(Math.abs(currentLeftScore - currentRightScore), 350000)
 
+            let leftHp = leftHpBeforeMap
+            let rightHp = rightHpBeforeMap
+
             // Make the animations and stuff
             if (currentLeftScore > currentRightScore) {
-                // Set number
-                animation.hpNumberLeft.update(leftHpBeforeMap)
-                const currentScore = rightHpBeforeMap - currentScoreDifference
-                const otherNumber = Math.max(currentScore, 0)
-                animation.hpNumberRight.update(otherNumber)
+                const newRight = Math.max(rightHp - scoreDiff, 0)
+                updateHpNumbers(leftHp, newRight)
+                updateHpBars(leftHp, newRight)
 
-                if (currentScore === 0) {
-                    // Display negative numbers
-                    hpNegativeNumberLeftEl.style.display = "none"
-                    hpNegativeNumberRightEl.style.display = "block"
-
-                    // Animate negative numbers
-                    animation.hpNegativeNumberLeft.update(0)
-                    animation.hpNegativeNumberRight.update(currentScore)
+                if (newRight === 0) {
+                    setNegativeDisplay(false, true)
+                    updateNegativeNumbers(0, newRight)
+                } else {
+                    setNegativeDisplay(false, false)
+                    updateNegativeNumbers(0, 0)
                 }
-
-                // Set bar width
-                hpBarHealthLeftEl.style.width = `${leftHpBeforeMap / totalMaxHp * 284}px`
-                hpBarHealthRightEl.style.width = `${otherNumber / totalMaxHp * 284}px`
             } else if (currentLeftScore === currentRightScore) {
-                // Set number
-                animation.hpNumberLeft.update(leftHpBeforeMap)
-                animation.hpNumberRight.update(rightHpBeforeMap)
-
-                // Display negative numbers
-                hpNegativeNumberLeftEl.style.display = "none"
-                hpNegativeNumberRightEl.style.display = "none"
-
-                // Animate negative numbers
-                animation.hpNegativeNumberLeft.update(0)
-                animation.hpNegativeNumberRight.update(0)
-
-                // Set bar width
-                hpBarHealthLeftEl.style.width = `${leftHpBeforeMap / totalMaxHp * 284}px`
-                hpBarHealthRightEl.style.width = `${rightHpBeforeMap / totalMaxHp * 284}px`
+                updateHpNumbers(leftHp, rightHp)
+                updateHpBars(leftHp, rightHp)
+                setNegativeDisplay(false, false)
+                updateNegativeNumbers(0, 0)
             } else if (currentLeftScore < currentRightScore) {
-                // Set number
-                const currentScore = leftHpBeforeMap - currentScoreDifference
-                const otherNumber = Math.max(currentScore, 0)
-                animation.hpNumberLeft.update(Math.max(currentScore, 0))
-                animation.hpNumberRight.update(rightHpBeforeMap)
+                const newLeft = Math.max(leftHp - scoreDiff, 0)
+                updateHpNumbers(newLeft, rightHp)
+                updateHpBars(newLeft, rightHp)
 
-                if (currentScore === 0) {
-                    // Display negative numbers
-                    hpNegativeNumberLeftEl.style.display = "block"
-                    hpNegativeNumberRightEl.style.display = "none"
-
-                    // Animate negative numbers
-                    animation.hpNegativeNumberLeft.update(currentScore)
-                    animation.hpNegativeNumberRight.update(0)
+                if (newLeft === 0) {
+                    setNegativeDisplay(true, false)
+                    updateNegativeNumbers(newLeft, 0)
+                } else {
+                    setNegativeDisplay(false, false)
+                    updateNegativeNumbers(0, 0)
                 }
-
-                // Set bar width
-                hpBarHealthLeftEl.style.width = `${otherNumber / totalMaxHp * 284}px`
-                hpBarHealthRightEl.style.width = `${rightHpBeforeMap / totalMaxHp * 284}px`
             }
         } else {
-            // Set number
-            animation.hpNumberLeft.update(leftHpBeforeMap)
-            animation.hpNumberRight.update(rightHpBeforeMap)
-
-            // Set bar width
-            hpBarHealthLeftEl.style.width = `${leftHpBeforeMap / totalMaxHp * 284}px`
-            hpBarHealthRightEl.style.width = `${rightHpBeforeMap / totalMaxHp * 284}px`
+            // Default state
+            updateHpNumbers(leftHpBeforeMap, rightHpBeforeMap)
+            updateHpBars(leftHpBeforeMap, rightHpBeforeMap)
         }
     }
 }
