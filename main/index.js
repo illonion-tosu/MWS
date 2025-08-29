@@ -265,7 +265,8 @@ socket.onmessage = event => {
                 }
             }
 
-            currentScoreDifference = Math.min(Math.abs(currentLeftScore - currentRightScore), 350000)
+            // Get score difference
+            currentScoreDifference = Math.abs(currentLeftScore - currentRightScore)
 
             // Pillar Neutralization
             if ((Number(pillarIdMap.r_n) === currentBeatmapId && currentLeftScore < currentRightScore) ||
@@ -274,6 +275,8 @@ socket.onmessage = event => {
                 currentScoreDifference = Math.round(currentScoreDifference / 2)
             }
 
+            // Get final score difference
+            currentScoreDifference = Math.min(currentScoreDifference, 350000)
 
             let leftHp = leftHpBeforeMap
             let rightHp = rightHpBeforeMap
