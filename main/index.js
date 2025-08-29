@@ -275,6 +275,18 @@ socket.onmessage = event => {
                 currentScoreDifference = Math.round(currentScoreDifference / 2)
             }
 
+            // Pillar Dominion
+            if ((Number(pillarIdMap.r_d) === currentBeatmapId && currentLeftScore > currentRightScore) ||
+                (Number(pillarIdMap.b_d) === currentBeatmapId && currentRightScore > currentLeftScore)
+            ) {
+                currentScoreDifference = Math.round(currentScoreDifference * 1.5)
+            }
+
+            // Pillar Coalescence
+            if (Number(pillarIdMap.r_c) === currentBeatmapId || Number(pillarIdMap.b_c) === currentBeatmapId) {
+                currentScoreDifference = Math.round(currentScoreDifference * 2)
+            }
+
             // Get final score difference
             currentScoreDifference = Math.min(currentScoreDifference, 350000)
 
