@@ -92,6 +92,12 @@ function setHp() {
 
     leftHpBeforeMap = getHpValue(setHpValueLeftEl, leftHpBeforeMap)
     rightHpBeforeMap = getHpValue(setHpValueRightEl, rightHpBeforeMap)
+
+    hpNegativeNumberLeftEl.style.display = "none"
+    hpNegativeNumberRightEl.style.display = "none"
+
+    animation.hpNegativeNumberLeft.update(0)
+    animation.hpNegativeNumberRight.update(0)
 }
 
 // Warmup
@@ -172,35 +178,35 @@ const BAR_MAX_WIDTH = 284
 const MAX_SCORE_DIFF = 350000
 
 const MOD_MULTIPLIERS = {
-  HR: 1.1,
-  DT: 1.2,
-  RESONANCE: 1.3,
+    HR: 1.1,
+    DT: 1.2,
+    RESONANCE: 1.3,
 }
 
 const PILLAR_MULTIPLIERS = {
-  NEUTRALIZE: 0.5,
-  DOMINION: 1.5,
-  COALESCENCE: 2,
+    NEUTRALIZE: 0.5,
+    DOMINION: 1.5,
+    COALESCENCE: 2,
 }
 
 function updateHpNumbers(left, right) {
-  animation.hpNumberLeft.update(left)
-  animation.hpNumberRight.update(right)
+    animation.hpNumberLeft.update(left)
+    animation.hpNumberRight.update(right)
 }
 
 function updateNegativeNumbers(left, right) {
-  animation.hpNegativeNumberLeft.update(left)
-  animation.hpNegativeNumberRight.update(right)
+    animation.hpNegativeNumberLeft.update(left)
+    animation.hpNegativeNumberRight.update(right)
 }
 
 function setNegativeDisplay(leftVisible, rightVisible) {
-  hpNegativeNumberLeftEl.style.display = leftVisible ? "block" : "none"
-  hpNegativeNumberRightEl.style.display = rightVisible ? "block" : "none"
+    hpNegativeNumberLeftEl.style.display = leftVisible ? "block" : "none"
+    hpNegativeNumberRightEl.style.display = rightVisible ? "block" : "none"
 }
 
 function updateHpBars(left, right) {
-  hpBarHealthLeftEl.style.width = `${(left / totalMaxHp) * BAR_MAX_WIDTH}px`
-  hpBarHealthRightEl.style.width = `${(right / totalMaxHp) * BAR_MAX_WIDTH}px`
+    hpBarHealthLeftEl.style.width = `${(left / totalMaxHp) * BAR_MAX_WIDTH}px`
+    hpBarHealthRightEl.style.width = `${(right / totalMaxHp) * BAR_MAX_WIDTH}px`
 }
 
 function handleNegative(newLeft, newRight) {
@@ -245,7 +251,6 @@ let currentLeftScore, currentRightScore, currentScoreDifference
 let currentBeatmapId, currentMappoolBeatmapDetails
 socket.onmessage = event => {
     const data = JSON.parse(event.data)
-    console.log(data)
 
     // Get Players
     if (redPlayerId !== data.tourney.clients[0].user.id) {
