@@ -267,6 +267,14 @@ socket.onmessage = event => {
 
             currentScoreDifference = Math.min(Math.abs(currentLeftScore - currentRightScore), 350000)
 
+            // Pillar Neutralization
+            if ((Number(pillarIdMap.r_n) === currentBeatmapId && currentLeftScore < currentRightScore) ||
+                (Number(pillarIdMap.b_n) === currentBeatmapId && currentRightScore < currentLeftScore)
+            ) {
+                currentScoreDifference = Math.round(currentScoreDifference / 2)
+            }
+
+
             let leftHp = leftHpBeforeMap
             let rightHp = rightHpBeforeMap
 
