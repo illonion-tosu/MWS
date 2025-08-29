@@ -1,3 +1,16 @@
+// Bar Max Width
+const BAR_MAX_WIDTH = 278;
+
+// Players
+let allPlayers
+async function getPlayers() {
+    const response = await axios.get("../_data/players.json")
+    allPlayers = response.data
+}
+
+// Find beatmaps
+const findPlayers = playerId => allPlayers.find(player => Number(player.playerId) === Number(playerId))
+
 const pillarDominionOptionEl = document.getElementById("pillar_dominion_option")
 const pillarCoalescenceOptionEl = document.getElementById("pillar_coalescence_option")
 window.selectPillarEl = document.getElementById("select_pillar")
@@ -160,6 +173,7 @@ function setPillar() {
 
 // Max Bar Width
 const maxBarWidth = 284
+// Helper Functions
 function updateHpNumbers(left, right) {
     animation.hpNumberLeft.update(left)
     animation.hpNumberRight.update(right)
@@ -177,13 +191,34 @@ function updateHpBars(left, right) {
     hpBarHealthRightEl.style.width = `${(right / totalMaxHp) * BAR_MAX_WIDTH}px`
 }
 
+// Player Variables
+let redPlayer, bluePlayer, redPlayerId, bluePlayerId
+
 // Socket
 const socket = createTosuWsSocket()
 // Socket
 let currentLeftScore, currentRightScore, currentScoreDifference
+// Current beatmap
+let currentBeatmapId, currentMappoolBeatmapDetails
 socket.onmessage = event => {
     const data = JSON.parse(event.data)
     console.log(data)
+
+    // Get Players
+    if (redPlayerId !== data.tourney.clients[0].user.id) {
+        redPlayerId = data.tourney.clients[0].user.id
+        redPlayer = findPlayers(redPlayerId)
+    }
+    if (bluePlayerId !== data.tourney.clients[1].user.id) {
+        bluePlayerId = data.tourney.clients[1].user.id
+        bluePlayer = findPlayers(bluePlayerId)
+    }
+
+    // Set Beatmap Id
+    if (currentBeatmapId !== data.beatmap.id) {
+        currentBeatmapId = data.beatmap.id
+        currentMappoolBeatmapDetails = findBeatmaps(currentBeatmapId)
+    }
 
     // IPC State
     if (ipcState !== data.tourney.ipcState) {
@@ -208,6 +243,28 @@ socket.onmessage = event => {
             // Set current scores
             currentLeftScore = data.tourney.clients[0].play.score
             currentRightScore = data.tourney.clients[1].play.score
+
+            // Pooler Slot
+            if (currentMappoolBeatmapDetails && currentMappoolBeatmapDetails.mod === "PS") {
+                // Normalise mods
+                if (currentMappoolBeatmapDetails.secondMod === "HR") {
+                    currentLeftScore /= 1.1
+                    currentRightScore /= 1.1
+                }
+                if (currentMappoolBeatmapDetails.secondMod === "DT") {
+                    currentLeftScore /= 1.2
+                    currentRightScore /= 1.2
+                }
+
+                // Check red player first
+                if (redPlayer && redPlayer.playerResonance === currentMappoolBeatmapDetails.resonance) {
+                    currentLeftScore *= 1.3
+                }
+                if (bluePlayer && bluePlayer.playerResonance === currentMappoolBeatmapDetails.resonance) {
+                    currentRightScore *= 1.3
+                }
+            }
+
             currentScoreDifference = Math.min(Math.abs(currentLeftScore - currentRightScore), 350000)
 
             let leftHp = leftHpBeforeMap
