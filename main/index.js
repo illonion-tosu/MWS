@@ -1,6 +1,3 @@
-// Bar Max Width
-const BAR_MAX_WIDTH = 278;
-
 // Players
 let allPlayers
 async function getPlayers() {
@@ -171,8 +168,54 @@ function setPillar() {
     }
 }
 
-// Max Bar Width
-const maxBarWidth = 284
+const BAR_MAX_WIDTH = 284
+const MAX_SCORE_DIFF = 350000
+
+const MOD_MULTIPLIERS = {
+  HR: 1.1,
+  DT: 1.2,
+  RESONANCE: 1.3,
+}
+
+const PILLAR_MULTIPLIERS = {
+  NEUTRALIZE: 0.5,
+  DOMINION: 1.5,
+  COALESCENCE: 2,
+}
+
+function updateHpNumbers(left, right) {
+  animation.hpNumberLeft.update(left)
+  animation.hpNumberRight.update(right)
+}
+
+function updateNegativeNumbers(left, right) {
+  animation.hpNegativeNumberLeft.update(left)
+  animation.hpNegativeNumberRight.update(right)
+}
+
+function setNegativeDisplay(leftVisible, rightVisible) {
+  hpNegativeNumberLeftEl.style.display = leftVisible ? "block" : "none"
+  hpNegativeNumberRightEl.style.display = rightVisible ? "block" : "none"
+}
+
+function updateHpBars(left, right) {
+  hpBarHealthLeftEl.style.width = `${(left / totalMaxHp) * BAR_MAX_WIDTH}px`
+  hpBarHealthRightEl.style.width = `${(right / totalMaxHp) * BAR_MAX_WIDTH}px`
+}
+
+function handleNegative(newLeft, newRight) {
+    if (newLeft === 0 && newRight !== 0) {
+        setNegativeDisplay(true, false)
+        updateNegativeNumbers(newLeft, 0)
+    } else if (newRight === 0 && newLeft !== 0) {
+        setNegativeDisplay(false, true)
+        updateNegativeNumbers(0, newRight)
+    } else {
+        setNegativeDisplay(false, false)
+        updateNegativeNumbers(0, 0)
+    }
+}
+
 // Helper Functions
 function updateHpNumbers(left, right) {
     animation.hpNumberLeft.update(left)
@@ -229,8 +272,28 @@ socket.onmessage = event => {
             if (!isWarmupToggled) {
                 if (currentLeftScore > currentRightScore) {
                     rightHpBeforeMap -= currentScoreDifference
+                    if (rightHpBeforeMap < 0) {
+                        // Clamp to 0
+                        const overflow = rightHpBeforeMap
+                        rightHpBeforeMap = 0
+
+                        // Show negative numbers
+                        hpNegativeNumberLeftEl.style.display = "none"
+                        hpNegativeNumberRightEl.style.display = "block"
+                        animation.hpNegativeNumberLeft.update(0)
+                        animation.hpNegativeNumberRight.update(overflow)
+                    }
                 } else if (currentLeftScore < currentRightScore) {
                     leftHpBeforeMap -= currentScoreDifference
+                    if (leftHpBeforeMap < 0) {
+                        // Clamp to 0
+                        const overflow = leftHpBeforeMap
+                        leftHpBeforeMap = 0
+
+                        // Show negative numbers
+                        hpNegativeNumberLeftEl.style.display = "block"
+                        animation.hpNegativeNumberLeft.update(overflow)
+                    }
                 }
             }
         } else if (ipcState !== 4) {
@@ -240,89 +303,81 @@ socket.onmessage = event => {
 
     if (!isWarmupToggled) {
         if (ipcState === 3) {
-            // Set current scores
-            currentLeftScore = data.tourney.clients[0].play.score
-            currentRightScore = data.tourney.clients[1].play.score
-
-            // Pooler Slot
-            if (currentMappoolBeatmapDetails && currentMappoolBeatmapDetails.mod === "PS") {
-                // Normalise mods
+            // --- Scores ---
+            let leftScore = data.tourney.clients[0].play.score
+            let rightScore = data.tourney.clients[1].play.score
+            
+            // --- Pooler Slot ---
+            if (currentMappoolBeatmapDetails?.mod === "PS") {
                 if (currentMappoolBeatmapDetails.secondMod === "HR") {
-                    currentLeftScore /= 1.1
-                    currentRightScore /= 1.1
+                  leftScore /= MOD_MULTIPLIERS.HR
+                  rightScore /= MOD_MULTIPLIERS.HR
                 }
                 if (currentMappoolBeatmapDetails.secondMod === "DT") {
-                    currentLeftScore /= 1.2
-                    currentRightScore /= 1.2
+                  leftScore /= MOD_MULTIPLIERS.DT
+                  rightScore /= MOD_MULTIPLIERS.DT
                 }
-
-                // Check red player first
-                if (redPlayer && redPlayer.playerResonance === currentMappoolBeatmapDetails.resonance) {
-                    currentLeftScore *= 1.3
+              
+                if (
+                  redPlayer?.playerResonance === currentMappoolBeatmapDetails.resonance
+                ) {
+                  leftScore *= MOD_MULTIPLIERS.RESONANCE
                 }
-                if (bluePlayer && bluePlayer.playerResonance === currentMappoolBeatmapDetails.resonance) {
-                    currentRightScore *= 1.3
+                if (
+                  bluePlayer?.playerResonance === currentMappoolBeatmapDetails.resonance
+                ) {
+                  rightScore *= MOD_MULTIPLIERS.RESONANCE
                 }
             }
-
-            // Get score difference
-            currentScoreDifference = Math.abs(currentLeftScore - currentRightScore)
-
+          
+            // --- Score Difference ---
+            let scoreDiff = Math.abs(leftScore - rightScore)
+          
             // Pillar Neutralization
-            if ((Number(pillarIdMap.r_n) === currentBeatmapId && currentLeftScore < currentRightScore) ||
-                (Number(pillarIdMap.b_n) === currentBeatmapId && currentRightScore < currentLeftScore)
+            if (
+                (Number(pillarIdMap.r_n) === currentBeatmapId && leftScore < rightScore) ||
+                (Number(pillarIdMap.b_n) === currentBeatmapId && rightScore < leftScore)
             ) {
-                currentScoreDifference = Math.round(currentScoreDifference / 2)
+                scoreDiff = Math.round(scoreDiff * PILLAR_MULTIPLIERS.NEUTRALIZE)
             }
-
+          
             // Pillar Dominion
-            if ((Number(pillarIdMap.r_d) === currentBeatmapId && currentLeftScore > currentRightScore) ||
-                (Number(pillarIdMap.b_d) === currentBeatmapId && currentRightScore > currentLeftScore)
+            if (
+                (Number(pillarIdMap.r_d) === currentBeatmapId && leftScore > rightScore) ||
+                (Number(pillarIdMap.b_d) === currentBeatmapId && rightScore > leftScore)
             ) {
-                currentScoreDifference = Math.round(currentScoreDifference * 1.5)
+                scoreDiff = Math.round(scoreDiff * PILLAR_MULTIPLIERS.DOMINION)
             }
-
+          
             // Pillar Coalescence
-            if (Number(pillarIdMap.r_c) === currentBeatmapId || Number(pillarIdMap.b_c) === currentBeatmapId) {
-                currentScoreDifference = Math.round(currentScoreDifference * 2)
+            if (
+                Number(pillarIdMap.r_c) === currentBeatmapId ||
+                Number(pillarIdMap.b_c) === currentBeatmapId
+            ) {
+                scoreDiff = Math.round(scoreDiff * PILLAR_MULTIPLIERS.COALESCENCE)
             }
-
-            // Get final score difference
-            currentScoreDifference = Math.min(currentScoreDifference, 350000)
-
+          
+            scoreDiff = Math.min(scoreDiff, MAX_SCORE_DIFF)
+          
+            // --- HP Updates ---
             let leftHp = leftHpBeforeMap
             let rightHp = rightHpBeforeMap
-
-            // Make the animations and stuff
-            if (currentLeftScore > currentRightScore) {
+          
+            if (leftScore > rightScore) {
                 const newRight = Math.max(rightHp - scoreDiff, 0)
                 updateHpNumbers(leftHp, newRight)
                 updateHpBars(leftHp, newRight)
-
-                if (newRight === 0) {
-                    setNegativeDisplay(false, true)
-                    updateNegativeNumbers(0, newRight)
-                } else {
-                    setNegativeDisplay(false, false)
-                    updateNegativeNumbers(0, 0)
-                }
-            } else if (currentLeftScore === currentRightScore) {
-                updateHpNumbers(leftHp, rightHp)
-                updateHpBars(leftHp, rightHp)
-                setNegativeDisplay(false, false)
-                updateNegativeNumbers(0, 0)
-            } else if (currentLeftScore < currentRightScore) {
+                handleNegative(leftHp, newRight)
+            } else if (rightScore > leftScore) {
                 const newLeft = Math.max(leftHp - scoreDiff, 0)
                 updateHpNumbers(newLeft, rightHp)
                 updateHpBars(newLeft, rightHp)
-
-                if (newLeft === 0) {
-                    setNegativeDisplay(true, false)
-                    updateNegativeNumbers(newLeft, 0)
-                } else {
-                    setNegativeDisplay(false, false)
-                    updateNegativeNumbers(0, 0)
-                }
+                handleNegative(newLeft, rightHp)
+            } else {
+                // Tie
+                updateHpNumbers(leftHp, rightHp)
+                updateHpBars(leftHp, rightHp)
+                handleNegative(leftHp, rightHp)
             }
         } else {
             // Default state
