@@ -9,7 +9,7 @@ async function getPlayers() {
 const findPlayers = playerId => allPlayers.find(player => Number(player.playerId) === Number(playerId))
 
 const pillarDominionOptionEl = document.getElementById("pillar_dominion_option")
-const pillarCoalescenceOptionEl = document.getElementById("pillar_coalescence_option")
+const pillarAscendancyOptionEl = document.getElementById("pillar_ascendancy_option")
 window.selectPillarEl = document.getElementById("select_pillar")
 
 // Set Total Max HP
@@ -39,12 +39,12 @@ async function getBeatmaps() {
         case "RO64": case "RO32": case "RO16":
             totalMaxHp = 800000
             pillarDominionOptionEl.style.display = "none"
-            pillarCoalescenceOptionEl.style.display = "none"
+            pillarAscendancyOptionEl.style.display = "none"
             window.selectPillarEl.setAttribute("size", 2)
             break
         case "QF": case "SF":
             totalMaxHp = 1000000
-            pillarCoalescenceOptionEl.style.display = "none"
+            pillarAscendancyOptionEl.style.display = "none"
             window.selectPillarEl.setAttribute("size", 2)
             break
         case "F": case "GF":
@@ -137,8 +137,8 @@ const redNeutralizationEl = document.getElementById("r_n")
 const blueNeutralizationEl = document.getElementById("b_n")
 const redDominionEl = document.getElementById("r_d")
 const blueDominionEl = document.getElementById("b_d")
-const redCoalescenceEl = document.getElementById("r_c")
-const blueCoalescenceEl = document.getElementById("b_c")
+const redAscendancyEl = document.getElementById("r_a")
+const blueAscendancyEl = document.getElementById("b_a")
 
 // Lookup map for IDs
 const pillarIdMap = {
@@ -156,8 +156,8 @@ const pillarElementMap = {
     b_n: blueNeutralizationEl,
     r_d: redDominionEl,
     b_d: blueDominionEl,
-    r_c: redCoalescenceEl,
-    b_c: blueCoalescenceEl,
+    r_c: redAscendancyEl,
+    b_c: blueAscendancyEl,
 }
 
 function setPillar() {
@@ -186,7 +186,7 @@ const MOD_MULTIPLIERS = {
 const PILLAR_MULTIPLIERS = {
     NEUTRALIZE: 0.5,
     DOMINION: 1.5,
-    COALESCENCE: 2,
+    ASCENDANCY: 2,
 }
 
 function updateHpNumbers(left, right) {
@@ -354,12 +354,12 @@ socket.onmessage = event => {
                 scoreDiff = Math.round(scoreDiff * PILLAR_MULTIPLIERS.DOMINION)
             }
           
-            // Pillar Coalescence
+            // Pillar Ascendancy
             if (
                 Number(pillarIdMap.r_c) === currentBeatmapId ||
                 Number(pillarIdMap.b_c) === currentBeatmapId
             ) {
-                scoreDiff = Math.round(scoreDiff * PILLAR_MULTIPLIERS.COALESCENCE)
+                scoreDiff = Math.round(scoreDiff * PILLAR_MULTIPLIERS.ASCENDANCY)
             }
           
             scoreDiff = Math.min(scoreDiff, MAX_SCORE_DIFF)
