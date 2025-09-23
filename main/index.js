@@ -4,6 +4,7 @@ async function getPlayers() {
     const response = await axios.get("../_data/players.json")
     allPlayers = response.data
 }
+getPlayers()
 
 // Find beatmaps
 const findPlayers = playerId => allPlayers.find(player => Number(player.playerId) === Number(playerId))
@@ -102,12 +103,21 @@ function setHp() {
 
 // Warmup
 const toggleWarmupEl = document.getElementById("toggle_warmup")
+const hpBarContainerLeftEl = document.getElementById("hp_bar_container_left")
+const hpBarContainerRightEl = document.getElementById("hp_bar_container_right")
 let isWarmupToggled = false
 function toggleWarmup() {
     isWarmupToggled = !isWarmupToggled
     toggleWarmupEl.textContent = `Toggle Warmup: ${isWarmupToggled? "ON" : "OFF"}`
     toggleWarmupEl.classList.add(isWarmupToggled? "on" : "off")
     toggleWarmupEl.classList.remove(isWarmupToggled? "off" : "on")
+    if (isWarmupToggled) {
+        hpBarContainerLeftEl.style.display = "none"
+        hpBarContainerRightEl.style.display = "none"
+    } else {
+        hpBarContainerLeftEl.style.display = "block"
+        hpBarContainerRightEl.style.display = "block"
+    }
 }
 
 // Health Bars
@@ -190,13 +200,13 @@ const PILLAR_MULTIPLIERS = {
 }
 
 function updateHpNumbers(left, right) {
-    animation.hpNumberLeft.update(left)
-    animation.hpNumberRight.update(right)
+    animation.hpNumberLeft.update(Math.round(left))
+    animation.hpNumberRight.update(Math.round(right))
 }
 
 function updateNegativeNumbers(left, right) {
-    animation.hpNegativeNumberLeft.update(left)
-    animation.hpNegativeNumberRight.update(right)
+    animation.hpNegativeNumberLeft.update(Math.round(left))
+    animation.hpNegativeNumberRight.update(Math.round(right))
 }
 
 function setNegativeDisplay(leftVisible, rightVisible) {
@@ -253,11 +263,11 @@ socket.onmessage = event => {
     const data = JSON.parse(event.data)
 
     // Get Players
-    if (redPlayerId !== data.tourney.clients[0].user.id) {
+    if (redPlayerId !== data.tourney.clients[0].user.id && allPlayers) {
         redPlayerId = data.tourney.clients[0].user.id
         redPlayer = findPlayers(redPlayerId)
     }
-    if (bluePlayerId !== data.tourney.clients[1].user.id) {
+    if (bluePlayerId !== data.tourney.clients[1].user.id && allPlayers) {
         bluePlayerId = data.tourney.clients[1].user.id
         bluePlayer = findPlayers(bluePlayerId)
     }
@@ -309,49 +319,56 @@ socket.onmessage = event => {
     if (!isWarmupToggled) {
         if (ipcState === 3) {
             // --- Scores ---
-            let leftScore = data.tourney.clients[0].play.score
-            let rightScore = data.tourney.clients[1].play.score
+            currentLeftScore = data.tourney.clients[0].play.score
+            currentRightScore = data.tourney.clients[1].play.score
+
+            // Remove HD
+            if (data.tourney.clients[0].play.mods.name.includes("HD")) currentLeftScore = currentLeftScore / 53 * 50
+            if (data.tourney.clients[1].play.mods.name.includes("HD")) currentRightScore = currentRightScore / 53 * 50
             
             // --- Pooler Slot ---
             if (currentMappoolBeatmapDetails?.mod === "PS") {
                 if (currentMappoolBeatmapDetails.secondMod === "HR") {
-                  leftScore /= MOD_MULTIPLIERS.HR
-                  rightScore /= MOD_MULTIPLIERS.HR
+                    currentLeftScore /= MOD_MULTIPLIERS.HR
+                    currentRightScore /= MOD_MULTIPLIERS.HR
                 }
                 if (currentMappoolBeatmapDetails.secondMod === "DT") {
-                  leftScore /= MOD_MULTIPLIERS.DT
-                  rightScore /= MOD_MULTIPLIERS.DT
+                    currentLeftScore /= MOD_MULTIPLIERS.DT
+                    currentRightScore /= MOD_MULTIPLIERS.DT
                 }
               
                 if (
-                  redPlayer?.playerResonance === currentMappoolBeatmapDetails.resonance
+                    redPlayer?.playerResonance === currentMappoolBeatmapDetails.resonance
                 ) {
-                  leftScore *= MOD_MULTIPLIERS.RESONANCE
+                    currentLeftScore *= MOD_MULTIPLIERS.RESONANCE
                 }
                 if (
-                  bluePlayer?.playerResonance === currentMappoolBeatmapDetails.resonance
+                    bluePlayer?.playerResonance === currentMappoolBeatmapDetails.resonance
                 ) {
-                  rightScore *= MOD_MULTIPLIERS.RESONANCE
+                    currentRightScore *= MOD_MULTIPLIERS.RESONANCE
                 }
             }
+
+            currentLeftScore = currentLeftScore
+            currentRightScore = currentRightScore
           
             // --- Score Difference ---
-            let scoreDiff = Math.abs(leftScore - rightScore)
+            currentScoreDifference = Math.abs(currentLeftScore - currentRightScore)
           
             // Pillar Neutralization
             if (
-                (Number(pillarIdMap.r_n) === currentBeatmapId && leftScore < rightScore) ||
-                (Number(pillarIdMap.b_n) === currentBeatmapId && rightScore < leftScore)
+                (Number(pillarIdMap.r_n) === currentBeatmapId && currentLeftScore < currentRightScore) ||
+                (Number(pillarIdMap.b_n) === currentBeatmapId && currentRightScore < currentLeftScore)
             ) {
-                scoreDiff = Math.round(scoreDiff * PILLAR_MULTIPLIERS.NEUTRALIZE)
+                currentScoreDifference = currentScoreDifference * PILLAR_MULTIPLIERS.NEUTRALIZE
             }
           
             // Pillar Dominion
             if (
-                (Number(pillarIdMap.r_d) === currentBeatmapId && leftScore > rightScore) ||
-                (Number(pillarIdMap.b_d) === currentBeatmapId && rightScore > leftScore)
+                (Number(pillarIdMap.r_d) === currentBeatmapId && currentLeftScore > currentRightScore) ||
+                (Number(pillarIdMap.b_d) === currentBeatmapId && currentRightScore > currentLeftScore)
             ) {
-                scoreDiff = Math.round(scoreDiff * PILLAR_MULTIPLIERS.DOMINION)
+                currentScoreDifference = currentScoreDifference * PILLAR_MULTIPLIERS.DOMINION
             }
           
             // Pillar Ascendancy
@@ -359,22 +376,22 @@ socket.onmessage = event => {
                 Number(pillarIdMap.r_c) === currentBeatmapId ||
                 Number(pillarIdMap.b_c) === currentBeatmapId
             ) {
-                scoreDiff = Math.round(scoreDiff * PILLAR_MULTIPLIERS.ASCENDANCY)
+                currentScoreDifference = currentScoreDifference * PILLAR_MULTIPLIERS.ASCENDANCY
             }
           
-            scoreDiff = Math.min(scoreDiff, MAX_SCORE_DIFF)
+            currentScoreDifference = Math.min(currentScoreDifference, MAX_SCORE_DIFF)
           
             // --- HP Updates ---
             let leftHp = leftHpBeforeMap
             let rightHp = rightHpBeforeMap
           
-            if (leftScore > rightScore) {
-                const newRight = Math.max(rightHp - scoreDiff, 0)
+            if (currentLeftScore > currentRightScore) {
+                const newRight = Math.max(rightHp - currentScoreDifference, 0)
                 updateHpNumbers(leftHp, newRight)
                 updateHpBars(leftHp, newRight)
                 handleNegative(leftHp, newRight)
-            } else if (rightScore > leftScore) {
-                const newLeft = Math.max(leftHp - scoreDiff, 0)
+            } else if (currentRightScore > currentLeftScore) {
+                const newLeft = Math.max(leftHp - currentScoreDifference, 0)
                 updateHpNumbers(newLeft, rightHp)
                 updateHpBars(newLeft, rightHp)
                 handleNegative(newLeft, rightHp)
@@ -388,6 +405,14 @@ socket.onmessage = event => {
             // Default state
             updateHpNumbers(leftHpBeforeMap, rightHpBeforeMap)
             updateHpBars(leftHpBeforeMap, rightHpBeforeMap)
+        }
+
+        if (currentMappoolBeatmapDetails?.mod !== "TB") {
+            hpBarContainerLeftEl.style.display = "none"
+            hpBarContainerRightEl.style.display = "none"
+        } else {
+            hpBarContainerLeftEl.style.display = "block"
+            hpBarContainerRightEl.style.display = "block"
         }
     }
 }

@@ -22,7 +22,6 @@ body {
 /* Main Page */
 .main {
     position: absolute;
-    background-image: url("../static/background.png");
     top: 0;
     left: 0;
     width: var(--main-width);
@@ -48,7 +47,7 @@ body {
     position: absolute;
     width: 284px;
     height: 11.5px;
-    background-color: #1F191C;
+    background-color: #C03A4B;
     top: 17px;
     left: 15px;
 }
