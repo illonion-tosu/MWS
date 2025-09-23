@@ -108,9 +108,7 @@ const hpBarContainerRightEl = document.getElementById("hp_bar_container_right")
 let isWarmupToggled = false
 function toggleWarmup() {
     isWarmupToggled = !isWarmupToggled
-    toggleWarmupEl.textContent = `Toggle Warmup: ${isWarmupToggled? "ON" : "OFF"}`
-    toggleWarmupEl.classList.add(isWarmupToggled? "on" : "off")
-    toggleWarmupEl.classList.remove(isWarmupToggled? "off" : "on")
+    toggleWarmupEl.textContent = `${isWarmupToggled ? "Show" : "Hide"} HP Bar`
     if (isWarmupToggled) {
         hpBarContainerLeftEl.style.display = "none"
         hpBarContainerRightEl.style.display = "none"
