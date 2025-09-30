@@ -1,3 +1,11 @@
+// Logger details
+let loggerDetails
+async function getLoggerDetails() {
+    const response = await axios.get("../_data/logger.json")
+    loggerDetails = response.data
+}
+getLoggerDetails()
+
 // Players
 let allPlayers
 async function getPlayers() {
@@ -208,8 +216,8 @@ function updateNegativeNumbers(left, right) {
 }
 
 function setNegativeDisplay(leftVisible, rightVisible) {
-    hpNegativeNumberLeftEl.style.display = leftVisible ? "block" : "none"
-    hpNegativeNumberRightEl.style.display = rightVisible ? "block" : "none"
+    hpNegativeNumberLeftEl.style.display = leftVisible ? "flex" : "none"
+    hpNegativeNumberRightEl.style.display = rightVisible ? "flex" : "none"
 }
 
 function updateHpBars(left, right) {
@@ -261,11 +269,11 @@ socket.onmessage = event => {
     const data = JSON.parse(event.data)
 
     // Get Players
-    if (redPlayerId !== data.tourney.clients[0].user.id && allPlayers) {
+    if (data.tourney.clients.length >= 2 && redPlayerId !== data.tourney.clients[0].user.id && allPlayers) {
         redPlayerId = data.tourney.clients[0].user.id
         redPlayer = findPlayers(redPlayerId)
     }
-    if (bluePlayerId !== data.tourney.clients[1].user.id && allPlayers) {
+    if (data.tourney.clients.length >= 2 && bluePlayerId !== data.tourney.clients[1].user.id && allPlayers) {
         bluePlayerId = data.tourney.clients[1].user.id
         bluePlayer = findPlayers(bluePlayerId)
     }
@@ -316,7 +324,7 @@ socket.onmessage = event => {
 
     if (!isWarmupToggled) {
         if (ipcState === 3) {
-            // --- Scores ---
+            // Scores
             currentLeftScore = data.tourney.clients[0].play.score
             currentRightScore = data.tourney.clients[1].play.score
 
@@ -324,16 +332,16 @@ socket.onmessage = event => {
             if (data.tourney.clients[0].play.mods.name.includes("HD")) currentLeftScore = currentLeftScore / 53 * 50
             if (data.tourney.clients[1].play.mods.name.includes("HD")) currentRightScore = currentRightScore / 53 * 50
             
-            // --- Pooler Slot ---
+            // Pooler Slot
             if (currentMappoolBeatmapDetails?.mod === "PS") {
-                if (currentMappoolBeatmapDetails.secondMod === "HR") {
-                    currentLeftScore /= MOD_MULTIPLIERS.HR
-                    currentRightScore /= MOD_MULTIPLIERS.HR
-                }
-                if (currentMappoolBeatmapDetails.secondMod === "DT") {
-                    currentLeftScore /= MOD_MULTIPLIERS.DT
-                    currentRightScore /= MOD_MULTIPLIERS.DT
-                }
+                // if (currentMappoolBeatmapDetails.secondMod === "HR") {
+                //     currentLeftScore /= MOD_MULTIPLIERS.HR
+                //     currentRightScore /= MOD_MULTIPLIERS.HR
+                // }
+                // if (currentMappoolBeatmapDetails.secondMod === "DT") {
+                //     currentLeftScore /= MOD_MULTIPLIERS.DT
+                //     currentRightScore /= MOD_MULTIPLIERS.DT
+                // }
               
                 if (
                     redPlayer?.playerResonance === currentMappoolBeatmapDetails.resonance
@@ -349,8 +357,10 @@ socket.onmessage = event => {
 
             currentLeftScore = currentLeftScore
             currentRightScore = currentRightScore
+
+            console.log(currentLeftScore, currentRightScore)
           
-            // --- Score Difference ---
+            // Score Difference
             currentScoreDifference = Math.abs(currentLeftScore - currentRightScore)
           
             // Pillar Neutralization
@@ -379,7 +389,7 @@ socket.onmessage = event => {
           
             currentScoreDifference = Math.min(currentScoreDifference, MAX_SCORE_DIFF)
           
-            // --- HP Updates ---
+            // HP Update
             let leftHp = leftHpBeforeMap
             let rightHp = rightHpBeforeMap
           
@@ -405,12 +415,71 @@ socket.onmessage = event => {
             updateHpBars(leftHpBeforeMap, rightHpBeforeMap)
         }
 
-        if (currentMappoolBeatmapDetails?.mod !== "TB") {
+        if (currentMappoolBeatmapDetails?.mod === "TB") {
             hpBarContainerLeftEl.style.display = "none"
             hpBarContainerRightEl.style.display = "none"
         } else {
             hpBarContainerLeftEl.style.display = "block"
             hpBarContainerRightEl.style.display = "block"
         }
+    }
+
+    const logData = {
+        tournament: "MWS",
+        hpInfo: {
+            totalMaxHp: totalMaxHp,
+            leftHpBeforeMap: leftHpBeforeMap,
+            rightHpBeforeMap: rightHpBeforeMap
+        },
+        isWarmupToggled: isWarmupToggled,
+        ipcState: ipcState,
+        checkedWinner: checkedWinner,
+        pillarInfo: {
+            pillarIdMap: pillarIdMap,
+            pillarElementMap: pillarElementMap,
+        },
+        playerInfo: {
+            redPlayerId: redPlayerId,
+            bluePlayerId: bluePlayerId,
+            redPlayer: redPlayer,
+            bluePlayer: bluePlayer,
+        },
+        scoreInfo: {
+            currentLeftScore: currentLeftScore,
+            currentRightScore: currentRightScore,
+            currentScoreDifference: currentScoreDifference
+        },
+        beatmapInfo: {
+            currentBeatmapId: currentBeatmapId,
+            currentMappoolBeatmapDetails: currentMappoolBeatmapDetails
+        },
+        eventData: {
+            beatmap: data.beatmap,
+            tourney: data.tourney
+        }
+    }
+
+    sendLog(logData)
+    console.log(logData)
+}
+
+async function sendLog(logObject) {
+    if (!loggerDetails) return
+
+    try {
+        const body = JSON.stringify(
+            logObject,
+            (key, value) => (value === undefined ? null : value)
+        );
+        const res = await fetch(`${loggerDetails.address}/log`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "x-api-key": loggerDetails.apiKey
+            },
+            body: body
+        });
+    } catch (err) {
+        console.error("Log failed:", err);
     }
 }
