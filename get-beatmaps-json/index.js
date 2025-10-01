@@ -29,7 +29,6 @@ async function getBeatmaps() {
         responseJson[0].order = allBeatmaps[i].order
         if (allBeatmaps[i].mod === "PS") {
             responseJson[0].resonance = allBeatmaps[i].resonance
-            responseJson[0].secondMod = allBeatmaps[i].secondMod
         }
         
         allBeatmapsJson.push(responseJson[0])

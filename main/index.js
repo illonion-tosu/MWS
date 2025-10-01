@@ -230,9 +230,16 @@ function detectPillarType(currentBeatmapId) {
 
 function applyPillarEffectByType(scoreDiff, pillar) {
     if (!pillar) return
-    const rule = PILLAR_RULES[pillar]
-    scoreDiff = Math.min(scoreDiff * rule, MAX_SCORE_DIFF)
+    const multiplier = PILLAR_MULTIPLIERS[pillar]
 
+    // Neutralise
+    if (multiplier === 0.5) {
+        scoreDiff = Math.min(scoreDiff, MAX_SCORE_DIFF) * multiplier
+        return scoreDiff
+    }
+
+    // Other pillars
+    scoreDiff = Math.min(scoreDiff * multiplier, MAX_SCORE_DIFF)
     if (currentMappoolBeatmapDetails.secondMod === "HR") {
         currentLeftScore /= MOD_MULTIPLIERS.HR
         currentRightScore /= MOD_MULTIPLIERS.HR
@@ -388,6 +395,7 @@ socket.onmessage = event => {
             // Score Difference
             currentScoreDifference = Math.abs(currentLeftScore - currentRightScore)
 
+            // Detect and apply effect of pillar
             const pillarType = detectPillarType(currentBeatmapId)
             currentScoreDifference = applyPillarEffectByType(currentScoreDifference, pillarType)
           
@@ -457,7 +465,7 @@ socket.onmessage = event => {
         }
     }
 
-    sendLog(logData)
+    // sendLog(logData)
     console.log(logData)
 }
 
