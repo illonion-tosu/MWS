@@ -208,7 +208,41 @@ const MOD_MULTIPLIERS = {
 const PILLAR_MULTIPLIERS = {
     NEUTRALIZE: 0.5,
     DOMINION: 1.5,
-    ASCENDANCY: 2,
+    ASCENDANCY: 2
+}
+
+function detectPillarType(currentBeatmapId) {
+    if (
+        (Number(pillarIdMap.r_n) === currentBeatmapId && currentLeftScore < currentRightScore) ||
+        (Number(pillarIdMap.b_n) === currentBeatmapId && currentRightScore < currentLeftScore)
+    ) return "NEUTRALIZE"
+
+    if (
+        (Number(pillarIdMap.r_d) === currentBeatmapId && currentLeftScore > currentRightScore) ||
+        (Number(pillarIdMap.b_d) === currentBeatmapId && currentRightScore > currentLeftScore)
+    ) return "DOMINION"
+
+    if (
+        Number(pillarIdMap.r_c) === currentBeatmapId ||
+        Number(pillarIdMap.b_c) === currentBeatmapId
+    ) return "ASCENDANCY"
+}
+
+function applyPillarEffectByType(scoreDiff, pillar) {
+    if (!pillar) return
+    const rule = PILLAR_RULES[pillar]
+    scoreDiff = Math.min(scoreDiff * rule, MAX_SCORE_DIFF)
+
+    if (currentMappoolBeatmapDetails.secondMod === "HR") {
+        currentLeftScore /= MOD_MULTIPLIERS.HR
+        currentRightScore /= MOD_MULTIPLIERS.HR
+    }
+    if (currentMappoolBeatmapDetails.secondMod === "DT") {
+        currentLeftScore /= MOD_MULTIPLIERS.DT
+        currentRightScore /= MOD_MULTIPLIERS.DT
+    }
+
+    return scoreDiff
 }
 
 function updateHpNumbers(left, right) {
@@ -340,14 +374,10 @@ socket.onmessage = event => {
             
             // Pooler Slot
             if (currentMappoolBeatmapDetails?.mod === "PS") {             
-                if (
-                    redPlayer?.playerResonance === currentMappoolBeatmapDetails.resonance
-                ) {
+                if (redPlayer?.playerResonance === currentMappoolBeatmapDetails.resonance) {
                     currentLeftScore *= MOD_MULTIPLIERS.RESONANCE
                 }
-                if (
-                    bluePlayer?.playerResonance === currentMappoolBeatmapDetails.resonance
-                ) {
+                if (bluePlayer?.playerResonance === currentMappoolBeatmapDetails.resonance) {
                     currentRightScore *= MOD_MULTIPLIERS.RESONANCE
                 }
             }
@@ -357,51 +387,9 @@ socket.onmessage = event => {
           
             // Score Difference
             currentScoreDifference = Math.abs(currentLeftScore - currentRightScore)
-          
-            // Pillar Neutralization
-            if (
-                (Number(pillarIdMap.r_n) === currentBeatmapId && currentLeftScore < currentRightScore) ||
-                (Number(pillarIdMap.b_n) === currentBeatmapId && currentRightScore < currentLeftScore)
-            ) {
-                currentScoreDifference = Math.min(currentScoreDifference, MAX_SCORE_DIFF)
-                currentScoreDifference *= PILLAR_MULTIPLIERS.NEUTRALIZE
-            }
-          
-            // Pillar Dominion
-            if (
-                (Number(pillarIdMap.r_d) === currentBeatmapId && currentLeftScore > currentRightScore) ||
-                (Number(pillarIdMap.b_d) === currentBeatmapId && currentRightScore > currentLeftScore)
-            ) {
-                currentScoreDifference *= PILLAR_MULTIPLIERS.DOMINION
-                currentScoreDifference = Math.min(currentScoreDifference, MAX_SCORE_DIFF)
 
-                if (currentMappoolBeatmapDetails.secondMod === "HR") {
-                    currentLeftScore /= MOD_MULTIPLIERS.HR
-                    currentRightScore /= MOD_MULTIPLIERS.HR
-                }
-                if (currentMappoolBeatmapDetails.secondMod === "DT") {
-                    currentLeftScore /= MOD_MULTIPLIERS.DT
-                    currentRightScore /= MOD_MULTIPLIERS.DT
-                }
-            }
-          
-            // Pillar Ascendancy
-            if (
-                Number(pillarIdMap.r_c) === currentBeatmapId ||
-                Number(pillarIdMap.b_c) === currentBeatmapId
-            ) {
-                currentScoreDifference *= PILLAR_MULTIPLIERS.ASCENDANCY
-                currentScoreDifference = Math.min(currentScoreDifference, MAX_SCORE_DIFF)
-
-                if (currentMappoolBeatmapDetails.secondMod === "HR") {
-                    currentLeftScore /= MOD_MULTIPLIERS.HR
-                    currentRightScore /= MOD_MULTIPLIERS.HR
-                }
-                if (currentMappoolBeatmapDetails.secondMod === "DT") {
-                    currentLeftScore /= MOD_MULTIPLIERS.DT
-                    currentRightScore /= MOD_MULTIPLIERS.DT
-                }
-            }
+            const pillarType = detectPillarType(currentBeatmapId)
+            currentScoreDifference = applyPillarEffectByType(currentScoreDifference, pillarType)
           
             // HP Update
             let leftHp = leftHpBeforeMap
@@ -429,13 +417,9 @@ socket.onmessage = event => {
             updateHpBars(leftHpBeforeMap, rightHpBeforeMap)
         }
 
-        if (currentMappoolBeatmapDetails?.mod === "TB") {
-            hpBarContainerLeftEl.style.display = "none"
-            hpBarContainerRightEl.style.display = "none"
-        } else {
-            hpBarContainerLeftEl.style.display = "block"
-            hpBarContainerRightEl.style.display = "block"
-        }
+        const isTiebreaker = currentMappoolBeatmapDetails?.mod === "TB"
+        hpBarContainerLeftEl.style.display = isTiebreaker ? "none" : "block"
+        hpBarContainerRightEl.style.display = isTiebreaker ? "none" : "block"
     }
 
     const logData = {
@@ -484,7 +468,7 @@ async function sendLog(logObject) {
         const body = JSON.stringify(
             logObject,
             (key, value) => (value === undefined ? null : value)
-        );
+        )
         const res = await fetch(`${loggerDetails.address}/log`, {
             method: "POST",
             headers: {
@@ -492,8 +476,8 @@ async function sendLog(logObject) {
                 "x-api-key": loggerDetails.apiKey
             },
             body: body
-        });
+        })
     } catch (err) {
-        console.error("Log failed:", err);
+        console.error("Log failed:", err)
     }
 }
