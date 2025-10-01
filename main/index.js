@@ -45,14 +45,20 @@ async function getBeatmaps() {
     
     // Set Total Max Hp
     switch (response.data.roundName) {
-        case "RO64": case "RO32": case "RO16":
+        case "RO64":
             totalMaxHp = 800000
             pillarDominionOptionEl.style.display = "none"
             pillarAscendancyOptionEl.style.display = "none"
             window.selectPillarEl.setAttribute("size", 2)
             break
-        case "QF": case "SF":
+        case "RO32": case "RO16":
             totalMaxHp = 1000000
+            pillarDominionOptionEl.style.display = "none"
+            pillarAscendancyOptionEl.style.display = "none"
+            window.selectPillarEl.setAttribute("size", 2)
+            break
+        case "QF": case "SF":
+            totalMaxHp = 1100000
             pillarAscendancyOptionEl.style.display = "none"
             window.selectPillarEl.setAttribute("size", 2)
             break
@@ -333,16 +339,7 @@ socket.onmessage = event => {
             if (data.tourney.clients[1].play.mods.name.includes("HD")) currentRightScore = currentRightScore / 53 * 50
             
             // Pooler Slot
-            if (currentMappoolBeatmapDetails?.mod === "PS") {
-                // if (currentMappoolBeatmapDetails.secondMod === "HR") {
-                //     currentLeftScore /= MOD_MULTIPLIERS.HR
-                //     currentRightScore /= MOD_MULTIPLIERS.HR
-                // }
-                // if (currentMappoolBeatmapDetails.secondMod === "DT") {
-                //     currentLeftScore /= MOD_MULTIPLIERS.DT
-                //     currentRightScore /= MOD_MULTIPLIERS.DT
-                // }
-              
+            if (currentMappoolBeatmapDetails?.mod === "PS") {             
                 if (
                     redPlayer?.playerResonance === currentMappoolBeatmapDetails.resonance
                 ) {
@@ -357,8 +354,6 @@ socket.onmessage = event => {
 
             currentLeftScore = currentLeftScore
             currentRightScore = currentRightScore
-
-            console.log(currentLeftScore, currentRightScore)
           
             // Score Difference
             currentScoreDifference = Math.abs(currentLeftScore - currentRightScore)
@@ -368,7 +363,8 @@ socket.onmessage = event => {
                 (Number(pillarIdMap.r_n) === currentBeatmapId && currentLeftScore < currentRightScore) ||
                 (Number(pillarIdMap.b_n) === currentBeatmapId && currentRightScore < currentLeftScore)
             ) {
-                currentScoreDifference = currentScoreDifference * PILLAR_MULTIPLIERS.NEUTRALIZE
+                currentScoreDifference = Math.min(currentScoreDifference, MAX_SCORE_DIFF)
+                currentScoreDifference *= PILLAR_MULTIPLIERS.NEUTRALIZE
             }
           
             // Pillar Dominion
@@ -376,7 +372,17 @@ socket.onmessage = event => {
                 (Number(pillarIdMap.r_d) === currentBeatmapId && currentLeftScore > currentRightScore) ||
                 (Number(pillarIdMap.b_d) === currentBeatmapId && currentRightScore > currentLeftScore)
             ) {
-                currentScoreDifference = currentScoreDifference * PILLAR_MULTIPLIERS.DOMINION
+                currentScoreDifference *= PILLAR_MULTIPLIERS.DOMINION
+                currentScoreDifference = Math.min(currentScoreDifference, MAX_SCORE_DIFF)
+
+                if (currentMappoolBeatmapDetails.secondMod === "HR") {
+                    currentLeftScore /= MOD_MULTIPLIERS.HR
+                    currentRightScore /= MOD_MULTIPLIERS.HR
+                }
+                if (currentMappoolBeatmapDetails.secondMod === "DT") {
+                    currentLeftScore /= MOD_MULTIPLIERS.DT
+                    currentRightScore /= MOD_MULTIPLIERS.DT
+                }
             }
           
             // Pillar Ascendancy
@@ -384,10 +390,18 @@ socket.onmessage = event => {
                 Number(pillarIdMap.r_c) === currentBeatmapId ||
                 Number(pillarIdMap.b_c) === currentBeatmapId
             ) {
-                currentScoreDifference = currentScoreDifference * PILLAR_MULTIPLIERS.ASCENDANCY
+                currentScoreDifference *= PILLAR_MULTIPLIERS.ASCENDANCY
+                currentScoreDifference = Math.min(currentScoreDifference, MAX_SCORE_DIFF)
+
+                if (currentMappoolBeatmapDetails.secondMod === "HR") {
+                    currentLeftScore /= MOD_MULTIPLIERS.HR
+                    currentRightScore /= MOD_MULTIPLIERS.HR
+                }
+                if (currentMappoolBeatmapDetails.secondMod === "DT") {
+                    currentLeftScore /= MOD_MULTIPLIERS.DT
+                    currentRightScore /= MOD_MULTIPLIERS.DT
+                }
             }
-          
-            currentScoreDifference = Math.min(currentScoreDifference, MAX_SCORE_DIFF)
           
             // HP Update
             let leftHp = leftHpBeforeMap
